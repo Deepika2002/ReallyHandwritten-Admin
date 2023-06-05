@@ -53,9 +53,9 @@ export default function Dashboard() {
   const pending = contacts ? contacts.filter((contact) => !contact.status || contact.status === "Pending" ||contact.status === "pending").length : 0;
 
   const stats = [
-    { name: 'Total Contacts', stat: totalContacts, link: '/admin/totalcontacts' },
-    { name: 'Total Cards Sent', stat: totalCardsSent, link: '/admin/sentcards' },
-    { name: 'Pending', stat: pending, link: '/admin/sendcards' },
+    { name: 'Total Contacts', stat: totalContacts, link: '/totalcontacts' },
+    { name: 'Total Cards Sent', stat: totalCardsSent, link: '/sentcards' },
+    { name: 'Pending', stat: pending, link: '/sendcards' },
   ];
 
   const handleButtonClick = (link) => {

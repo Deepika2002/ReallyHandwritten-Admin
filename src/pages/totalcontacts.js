@@ -1,8 +1,8 @@
 import React from "react";
-import AdminSidebarheader from "../../components/adminsidebarheader";
+import AdminSidebarheader from "../components/adminsidebarheader";
 import { useSession, getSession } from "next-auth/react";
 import useSWR from "swr";
-import Totaldatatable from "../components/admincomponents/totaldatatable";
+import Totaldatatable from "../components/totaldatatable";
 
 export async function getServerSideProps(context) {
   const session = await getSession(context);
@@ -24,6 +24,14 @@ const generateCSV = (contacts) => {
     "Address",
     "Signed Agent",
     "Status",
+    "User Preference ID",
+    "User Preference Name",
+    "User Preference Welcome Input",
+    "User Preference Address Clients",
+    "User Preference Endearing Term",
+    "User Preference Without Name",
+    "User Preference Message Input",
+    "User Preference Select Card"
   ];
   // Create a CSV string with the contact information
   const csvContent = [
@@ -34,7 +42,13 @@ const generateCSV = (contacts) => {
           contact.email
         },"${contact.address.replace(/"/g, '""')}",${contact.agent},${
           contact.status
-        }`
+        },${contact.userpreference.id},${contact.userpreference.name},"${
+          contact.userpreference.welcomeInput
+        }",${contact.userpreference.addressClients},${
+          contact.userpreference.endearingTerm
+        },"${contact.userpreference.withoutName}","${
+          contact.userpreference.messageInput
+        }","${contact.userpreference.selectCard}"`
     ),
   ].join("\n");
 
