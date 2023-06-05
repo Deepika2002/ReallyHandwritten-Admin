@@ -1,7 +1,18 @@
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useSession,getSession } from "next-auth/react";
 import useSWR, { mutate } from "swr";
+import { useRouter } from "next/router";
 import AdminSidebarheader from "../components/adminsidebarheader";
+
+export async function getServerSideProps(context) {
+  const session = await getSession(context);
+
+  return {
+    props: {
+      session,
+    },
+  };
+}
 
 const generateCSV = (contacts) => {
   const headers = [
@@ -64,10 +75,13 @@ export default function Sendcards() {
   const [editingRow, setEditingRow] = useState(null);
   const [editedData, setEditedData] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
+  const [showUnauthorized, setShowUnauthorized] = useState(false);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter()
   const rowsPerPage = 10;
   const { data: session } = useSession();
+
 
   const fetcher = async (url) => {
     const res = await fetch(url);
@@ -115,6 +129,14 @@ export default function Sendcards() {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    if (!session || session.user.role !== 'ADMIN') {
+      setShowUnauthorized(true);
+      setTimeout(() => {
+        router.replace('/');
+      }, 3000); // Delay of 3 seconds before redirection
+    }
+  }, [session, router]);
 
   useEffect(() => {
     loadTableData();
@@ -145,6 +167,7 @@ export default function Sendcards() {
           <div className="px-4  dis sm:px-6 lg:px-8">
             <h1 className="text-2xl font-semibold text-gray-900">Send Cards</h1>
           </div>
+          
           <div className="px-4 sm:px-6 lg:px-8">
             <button
               onClick={handleExport}
@@ -154,6 +177,11 @@ export default function Sendcards() {
             </button>
           </div>
           </div>
+          {showUnauthorized && (
+                <div>You are not authorized to access this page.</div>
+              )}
+              {!showUnauthorized && (
+                <>
           <div >
             <div className="mt-8 flow-root">
               <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -296,6 +324,8 @@ export default function Sendcards() {
               </nav>
             </div>
           </div>
+          </>
+              )}
         </div>
       </div>
     </>

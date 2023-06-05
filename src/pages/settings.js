@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession, getSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
 import Sidebarheader from '../components/adminsidebarheader';
+
 
 export async function getServerSideProps(context) {
   const session = await getSession(context);
@@ -12,8 +14,13 @@ export async function getServerSideProps(context) {
   };
 }
 
+
+
 export default function Settings() {
   const { data: session, status } = useSession();
+  const router = useRouter()
+  const [showUnauthorized, setShowUnauthorized] = useState(false);
+  console.log("settings", session)
   const [name, setName] = useState(session?.user?.name || '');
   const [password, setPassword] = useState('');
 
@@ -24,7 +31,15 @@ export default function Settings() {
   const handlePasswordChange = (e) => {
     setPassword(e.target.value);
   };
-
+  
+  useEffect(() => {
+    if (!session || session.user.role !== 'ADMIN') {
+      setShowUnauthorized(true);
+      setTimeout(() => {
+        router.replace('/');
+      }, 3000); // Delay of 3 seconds before redirection
+    }
+  }, [session, router]);
   
 
   const handleSubmit = async (e) => {
@@ -71,6 +86,11 @@ export default function Settings() {
 
       <div className="flex flex-1 flex-col lg:pl-72">
         <div className="flex-1">
+        {showUnauthorized && (
+                <div>You are not authorized to access this page.</div>
+              )}
+              {!showUnauthorized && (
+                <>
           <div className="py-6 lg:px-6">
             <form onSubmit={handleSubmit}>
               <div className="space-y-12">
@@ -144,6 +164,8 @@ export default function Settings() {
               </div>
             </form>
           </div>
+          </>
+              )}
         </div>
         </div>
       </>

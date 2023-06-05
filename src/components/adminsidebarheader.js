@@ -2,6 +2,9 @@ import { Fragment, useState } from 'react'
 import Image from 'next/image'
 import { Dialog, Menu, Transition } from '@headlessui/react'
 import {
+  signOut
+} from "next-auth/react";
+import {
   Bars3BottomLeftIcon,
   BellIcon,
   Cog6ToothIcon,
@@ -10,7 +13,8 @@ import {
   UserGroupIcon,
   QuestionMarkCircleIcon,
   XMarkIcon,
-  UserCircleIcon
+  UserCircleIcon,
+  ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline'
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import { useRouter } from 'next/router';
@@ -126,6 +130,7 @@ export default function AdminSidebarheader() {
                           {item.name}
                         </a>
                       ))}
+                      
                     </nav>
                   </div>
                 </Dialog.Panel>
@@ -171,6 +176,16 @@ export default function AdminSidebarheader() {
                     {item.name}
                   </a>
                 ))}
+                <a
+                  onClick={() => signOut()}
+                  className="group cursor-pointer flex items-center px-4 py-2 text-gray-600 text-md font-medium border-l-4 border-transparent hover:border-l-4 hover:bg-gray-100 hover:text-gray-900"
+                >
+                  <ArrowRightOnRectangleIcon
+                    className="hover:text-orange-500 text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6"
+                    aria-hidden="true"
+                  />
+                  Log out
+                </a>
               </nav>
             </div>
           </div>

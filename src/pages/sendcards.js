@@ -1,7 +1,19 @@
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useSession,getSession } from "next-auth/react";
 import useSWR, { mutate } from "swr";
+import { useRouter } from "next/router";
 import AdminSidebarheader from "../components/adminsidebarheader";
+
+
+export async function getServerSideProps(context) {
+  const session = await getSession(context);
+
+  return {
+    props: {
+      session,
+    },
+  };
+}
 
 const generateCSV = (contacts) => {
   const headers = [
@@ -19,14 +31,14 @@ const generateCSV = (contacts) => {
     "User Preference Endearing Term",
     "User Preference Without Name",
     "User Preference Message Input",
-    "User Preference Select Card"
+    "User Preference Select Card",
   ];
 
   // Filter the contacts based on the status
   const filteredContacts = contacts.filter(
     (contact) =>
-      contact.status === 'Pending' ||
-      contact.status === 'In-Progress' ||
+      contact.status === "Pending" ||
+      contact.status === "In-Progress" ||
       contact.status === null
   );
 
@@ -66,10 +78,13 @@ export default function Sendcards() {
   const [editingRow, setEditingRow] = useState(null);
   const [editedData, setEditedData] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
+  const [showUnauthorized, setShowUnauthorized] = useState(false);
   const [rows, setRows] = useState([]);
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const rowsPerPage = 10;
   const { data: session } = useSession();
+
 
   const fetcher = async (url) => {
     const res = await fetch(url);
@@ -79,11 +94,20 @@ export default function Sendcards() {
     return res.json();
   };
 
-  const { data:contactsWithUserPreferences, error } = useSWR(`/api/contacts/contacts`, fetcher);
+  const { data: contactsWithUserPreferences, error } = useSWR(
+    `/api/contacts/contacts`,
+    fetcher
+  );
 
   // console.log("conatcts",data)
-
-
+  useEffect(() => {
+    if (!session || session.user.role !== "ADMIN") {
+      setShowUnauthorized(true);
+      setTimeout(() => {
+        router.replace("/");
+      }, 3000); // Delay of 3 seconds before redirection
+    }
+  }, [session, router]);
 
   const handleEdit = (person) => {
     setEditingRow(person);
@@ -180,23 +204,31 @@ export default function Sendcards() {
 
   return (
     <>
-      <AdminSidebarheader/>
+      <AdminSidebarheader />
       <div className="flex flex-1 flex-col lg:pl-64">
         <div className="flex-1 py-6">
+          {showUnauthorized && (
+                <div>You are not authorized to access this page.</div>
+              )}
+              {!showUnauthorized && (
+                <>
           <div className=" flex justify-between py-4">
-          <div className="px-4  dis sm:px-6 lg:px-8">
-            <h1 className="text-2xl font-semibold text-gray-900">Send Cards</h1>
+            <div className="px-4  dis sm:px-6 lg:px-8">
+              <h1 className="text-2xl font-semibold text-gray-900">
+                Send Cards
+              </h1>
+            </div>
+
+            <div className="px-4 sm:px-6 lg:px-8">
+              <button
+                onClick={handleExport}
+                className="bg-red-900  text-white px-4 py-2 rounded-md"
+              >
+                Export Contacts
+              </button>
+            </div>
           </div>
-          <div className="px-4 sm:px-6 lg:px-8">
-            <button
-              onClick={handleExport}
-              className="bg-red-900  text-white px-4 py-2 rounded-md"
-            >
-              Export Contacts
-            </button>
-          </div>
-          </div>
-          <div >
+          <div>
             <div className="mt-8 px-8 flow-root">
               <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
                 <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
@@ -240,14 +272,14 @@ export default function Sendcards() {
                           >
                             Signed Agent
                           </th>
-                        
+
                           <th
                             scope="col"
                             className="py-3.5 px-3 text-left text-sm font-semibold text-gray-900"
                           >
                             Status
                           </th>
-                        
+
                           <th
                             scope="col"
                             className="py-3.5 px-3 text-left text-sm font-semibold text-gray-900 sm:pr-6"
@@ -277,7 +309,7 @@ export default function Sendcards() {
                             <td className="whitespace-nowrap py-4 px-3 text-sm text-gray-500">
                               <span>{person.agent}</span>
                             </td>
-                            
+
                             <td className="whitespace-nowrap py-4 px-3 text-sm text-gray-500">
                               {editingRow === person ? (
                                 <select
@@ -362,6 +394,8 @@ export default function Sendcards() {
               </nav>
             </div>
           </div>
+          </>
+          )}
         </div>
       </div>
     </>

@@ -1,6 +1,8 @@
 import React from "react";
+import { useState, useEffect } from 'react';
 import AdminSidebarheader from "../components/adminsidebarheader";
 import { useSession, getSession } from "next-auth/react";
+import { useRouter } from 'next/router';
 import useSWR from "swr";
 import Totaldatatable from "../components/totaldatatable";
 
@@ -66,6 +68,8 @@ const generateCSV = (contacts) => {
 };
 export default function Allcontacts() {
   const { data: session, status } = useSession();
+  const router = useRouter()
+  const [showUnauthorized, setShowUnauthorized] = useState(false);
 
   const fetcher = async (url) => {
     const res = await fetch(url);
@@ -74,6 +78,14 @@ export default function Allcontacts() {
     }
     return res.json();
   };
+  useEffect(() => {
+    if (!session || session.user.role !== 'ADMIN') {
+      setShowUnauthorized(true);
+      setTimeout(() => {
+        router.replace('/');
+      }, 3000); // Delay of 3 seconds before redirection
+    }
+  }, [session, router]);
 
   const { data: contacts, error } = useSWR(`/api/contacts/contacts`, fetcher);
     console.log("data data",contacts)
@@ -90,6 +102,11 @@ export default function Allcontacts() {
       <AdminSidebarheader />
       <div className="flex flex-1 flex-col lg:pl-64">
         <main className="flex-1">
+        {showUnauthorized && (
+                <div>You are not authorized to access this page.</div>
+              )}
+              {!showUnauthorized && (
+                <>
           <div className="py-6">
             {/* Page title */}
             <div className="flex justify-between">
@@ -113,6 +130,8 @@ export default function Allcontacts() {
             <Totaldatatable contacts={contacts} />
             {/* /End replace */}
           </div>
+          </>
+              )}
         </main>
       </div>
     </>
